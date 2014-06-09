@@ -17,12 +17,21 @@
 
 #pragma once
 
+#ifndef ENGINE_H
+#define ENGINE_H
+
 #include "mongo/db/jsobj.h"
+#include <map>
+#include <string>
+#include <vector>
+
 
 namespace mongo {
     typedef unsigned long long ScriptingFunction;
     typedef BSONObj (*NativeFunction)(const BSONObj& args, void* data);
     typedef map<string, ScriptingFunction> FunctionCacheMap;
+
+	static std::string ___GlobalString = "";
 
     class DBClientWithCommands;
 
@@ -32,6 +41,10 @@ namespace mongo {
     };
 
     class Scope : boost::noncopyable {
+	public:
+		//std::map<std::string, std::string>  resultMap;
+		//std::string resultMap;
+		std::string foo;
     public:
         Scope();
         virtual ~Scope();
@@ -83,18 +96,30 @@ namespace mongo {
         /**
          * @return 0 on success
          */
-        int invoke(const char* code, const BSONObj* args, const BSONObj* recv, int timeoutMs = 0);
+		std::string invoke(const char* code, const BSONObj* args, const BSONObj* recv, int timeoutMs = 0);
+		
+		char* myInvoke(const char* code, const BSONObj* args, const BSONObj* recv, int timeoutMs = 0) {
+			return "foo";
+		}
 
-        virtual int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,
+	
+
+		//Gergoe: new parameter: char* code
+        virtual std::string invoke(ScriptingFunction func, const char* code, const BSONObj* args, const BSONObj* recv,
                            int timeoutMs = 0, bool ignoreReturn = false, bool readOnlyArgs = false,
                            bool readOnlyRecv = false) = 0;
+
+		
+		virtual int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,
+			int timeoutMs = 0, bool ignoreReturn = false, bool readOnlyArgs = false,
+			bool readOnlyRecv = false) = 0;
 
         void invokeSafe(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,
                         int timeoutMs = 0, bool ignoreReturn = false, bool readOnlyArgs = false,
                         bool readOnlyRecv = false) {
-            int res = invoke(func, args, recv, timeoutMs, ignoreReturn,
-                             readOnlyArgs, readOnlyRecv);
-            if (res == 0)
+           // int res = invoke(func, args, recv, timeoutMs, ignoreReturn,
+             //                readOnlyArgs, readOnlyRecv);
+          //  if (res == 0)
                 return;
             uasserted(9004, string("invoke failed: ") + getError());
         }
@@ -170,6 +195,8 @@ namespace mongo {
         FunctionCacheMap _cachedFunctions;
         int _numTimesUsed;
         bool _lastRetIsNativeCode; // v8 only: set to true if eval'd script returns a native func
+
+		std::vector<std::pair<std::string, std::string>> _storedFunctions;
     };
 
     class ScriptEngine : boost::noncopyable {
@@ -246,3 +273,6 @@ namespace mongo {
 
     extern ScriptEngine* globalScriptEngine;
 }
+
+
+#endif

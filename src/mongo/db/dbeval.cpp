@@ -44,9 +44,17 @@
 #include "mongo/scripting/engine.h"
 #include "mongo/util/lruishmap.h"
 
+#include <string>
+
+#include <iostream>
+
+
+
 namespace mongo {
 
     const int edebug=0;
+
+	extern std::string ___GlobalString;
 
     bool dbEval(const string& dbName, BSONObj& cmd, BSONObjBuilder& result, string& errmsg) {
         BSONElement e = cmd.firstElement();
@@ -73,53 +81,30 @@ namespace mongo {
 
         const string userToken = ClientBasic::getCurrent()->getAuthorizationSession()
                                                           ->getAuthenticatedUserNamesToken();
-        auto_ptr<Scope> s = globalScriptEngine->getPooledScope( dbName, "dbeval" + userToken );
-        ScriptingFunction f = s->createFunction(code);
-        if ( f == 0 ) {
-            errmsg = (string)"compile failed: " + s->getError();
-            return false;
-        }
+        auto_ptr<Scope> as = globalScriptEngine->getPooledScope( dbName, "dbeval" + userToken );
 
-        if ( e.type() == CodeWScope )
-            s->init( e.codeWScopeScopeDataUnsafe() );
-        s->localConnect( dbName.c_str() );
-
+		Scope* s = as.get();
+	
+		printf("called: dbEval \n");
+	
         BSONObj args;
         {
             BSONElement argsElement = cmd.getField("args");
             if ( argsElement.type() == Array ) {
                 args = argsElement.embeddedObject();
-                if ( edebug ) {
+                if ( true ) { //original:  if ( edebug ) {
                     out() << "args:" << args.toString() << endl;
                     out() << "code:\n" << code << endl;
                 }
             }
         }
+	
+		auto retVal =  s->invoke(code, &args, 0, storageGlobalParams.quota ? 10 * 60 * 1000 : 0);
+ 				
+		result.append("retval", retVal);
+		
 
-        int res;
-        {
-            Timer t;
-            res = s->invoke(f, &args, 0, storageGlobalParams.quota ? 10 * 60 * 1000 : 0);
-            int m = t.millis();
-            if (m > serverGlobalParams.slowMS) {
-                out() << "dbeval slow, time: " << dec << m << "ms " << dbName << endl;
-                if ( m >= 1000 ) log() << code << endl;
-                else OCCASIONALLY log() << code << endl;
-            }
-        }
-        if (res || s->isLastRetNativeCode()) {
-            result.append("errno", (double) res);
-            errmsg = "invoke failed: ";
-            if (s->isLastRetNativeCode())
-                errmsg += "cannot return native function";
-            else
-                errmsg += s->getError();
-            return false;
-        }
-
-        s->append( result , "retval" , "__returnValue" );
-
-        return true;
+		return true;
     }
 
     // SERVER-4328 todo review for concurrency

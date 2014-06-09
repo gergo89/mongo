@@ -55,9 +55,12 @@ namespace mongo {
                      _loadedVersion(0),
                      _numTimesUsed(0),
                      _lastRetIsNativeCode(false) {
+		printf("scope constructor called\n");
+		
     }
 
-    Scope::~Scope() {
+	Scope::~Scope() {
+		printf("scope destructor called\n");
     }
 
     void Scope::append(BSONObjBuilder& builder, const char* fieldName, const char* scopeName) {
@@ -100,10 +103,13 @@ namespace mongo {
         }
     }
 
-    int Scope::invoke(const char* code, const BSONObj* args, const BSONObj* recv, int timeoutMs) {
-        ScriptingFunction func = createFunction(code);
-        uassert(10207,  "compile failed", func);
-        return invoke(func, args, recv, timeoutMs);
+    std::string Scope::invoke(const char* code, const BSONObj* args, const BSONObj* recv, int timeoutMs) {
+       
+		
+		
+		//ScriptingFunction func = createFunction(code);
+        //uassert(10207,  "compile failed", func);
+        return invoke(0.0, code, args, recv, timeoutMs);
     }
 
     bool Scope::execFile(const string& filename, bool printResult, bool reportError,
@@ -200,6 +206,9 @@ namespace mongo {
             BSONObj o = c->nextSafe();
             BSONElement n = o["_id"];
             BSONElement v = o["value"];
+
+			_storedFunctions.push_back(std::make_pair(n.valuestr(), v.valuestr()));
+	
 
             uassert(10209, str::stream() << "name has to be a string: " << n, n.type() == String);
             uassert(10210, "value has to be set", v.type() != EOO);
@@ -387,12 +396,20 @@ namespace {
 
         void setBoolean(const char* field, bool val) { _real->setBoolean(field, val); }
         void setFunction(const char* field, const char* code) { _real->setFunction(field, code); }
-        ScriptingFunction createFunction(const char* code) { return _real->createFunction(code); }
+		ScriptingFunction createFunction(const char* code) { return _real->createFunction(code); }
         int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,
                    int timeoutMs, bool ignoreReturn, bool readOnlyArgs, bool readOnlyRecv) {
             return _real->invoke(func, args, recv, timeoutMs, ignoreReturn,
                                  readOnlyArgs, readOnlyRecv);
         }
+
+		std::string invoke(ScriptingFunction func, const char* code, const BSONObj* args, const BSONObj* recv,
+			int timeoutMs, bool ignoreReturn, bool readOnlyArgs, bool readOnlyRecv) {
+			return _real->invoke(func, code, args, recv, timeoutMs, ignoreReturn,
+				readOnlyArgs, readOnlyRecv);
+		}
+
+
         bool exec(const StringData& code, const string& name, bool printResult, bool reportError,
                   bool assertOnError, int timeoutMs = 0) {
             return _real->exec(code, name, printResult, reportError, assertOnError, timeoutMs);
@@ -421,15 +438,17 @@ namespace {
     };
 
     /** Get a scope from the pool of scopes matching the supplied pool name */
-    auto_ptr<Scope> ScriptEngine::getPooledScope(const string& db, const string& scopeType) {
+	auto_ptr<Scope> ScriptEngine::getPooledScope(const string& db, const string& scopeType) {
         const string fullPoolName = db + scopeType;
         boost::shared_ptr<Scope> s = scopeCache.tryAcquire(fullPoolName);
         if (!s) {
             s.reset(newScope());
         }
 
-        auto_ptr<Scope> p;
+		auto_ptr<Scope> p;
+		//p = new PooledScope(fullPoolName, s)
         p.reset(new PooledScope(fullPoolName, s));
+	
         p->setLocalDB(db);
         p->loadStored(true);
         return p;

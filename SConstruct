@@ -60,6 +60,7 @@ freebsd = False
 openbsd = False
 solaris = False
 
+
 if "darwin" == platform:
     darwin = True
     platform = "osx" # prettier than darwin
@@ -207,6 +208,8 @@ add_option( "cxx-use-shell-environment", "use $CXX from shell for C++ compiler" 
 add_option( "ld", "linker to use" , 1 , True )
 add_option( "c++11", "enable c++11 support (experimental)", 0, True )
 
+
+
 add_option( "cpppath", "Include path if you have headers in a nonstandard directory" , 1 , True )
 add_option( "libpath", "Library path if you have libraries in a nonstandard directory" , 1 , True )
 
@@ -326,6 +329,10 @@ add_option('cache',
 add_option('cache-dir',
            "Specify the directory to use for caching objects if --cache is in use",
            1, False, default="#build/cached/.cache")
+		   
+		   
+		   
+
 
 # don't run configure if user calls --help
 if GetOption('help'):
@@ -469,6 +476,14 @@ env = Environment( BUILD_DIR=variantDir,
                    CONFIGURELOG = '#' + scons_data_dir + '/config.log'
                    )
 
+				   
+env.Append(CPPPATH = ['C:/Program Files/Java/jdk1.8.0/include'])
+env.Append(CPPPATH = ['C:/Program Files/Java/jdk1.8.0/include/win32'])
+
+
+env.Append(LIBPATH = ['C:/Program Files/Java/jdk1.8.0/lib/'])
+env.Append(LIBS = ['C:/Program Files/Java/jdk1.8.0/lib/jvm.lib'])
+				   
 if has_option("cache"):
     EnsureSConsVersion( 2, 3, 0 )
     if has_option("release"):

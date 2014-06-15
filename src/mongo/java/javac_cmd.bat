@@ -1,0 +1,1 @@
+start cmd /k "cd c:\katyusa\GitHub\mongo\src\mongo\java\&&javac JniClass.java"

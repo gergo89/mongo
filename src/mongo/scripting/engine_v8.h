@@ -825,7 +825,8 @@ namespace mongo {
 				JavaVMInitArgs vm_args;
 				JavaVMOption options[1];
 
-				options[0].optionString = "-Djava.class.path=c:\\katyusa\\JKU\\2013142\\projekt\\wp_projektSeminar\\JNITest\\src\\";
+				//options[0].optionString = "-Djava.class.path=c:\\katyusa\\JKU\\2013142\\projekt\\wp_projektSeminar\\JNITest\\src\\";
+
 				vm_args.version = 0x00010002;
 				vm_args.options = options;
 				vm_args.nOptions = 1;
@@ -834,8 +835,22 @@ namespace mongo {
 
 				if (!jvmCreated)
 				{
+					std::string class_property = "-Djava.class.path=";
+					const char* path = "..\\..\\..\\..\\..\\src\\mongo\\java\\";
+					char* absolute_path;
+					_fullpath(absolute_path,path,_MAX_PATH);
+
+					std::string a_path(absolute_path);
+					std::string full_name = class_property + a_path;
+
+					char* optClassPath = new char[full_name.size() + 1];
+					std::copy(full_name.begin(),full_name.end(),optClassPath);
+					optClassPath[full_name.size()] = '\0';
+					options[0].optionString = optClassPath;
+
 					res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
 
+					delete[] optClassPath;
 					if (res < 0) {
 						fprintf(stderr, "Can't create Java VM\n");
 						//exit(1);
@@ -860,7 +875,7 @@ namespace mongo {
 				descriptor: ([Ljava/lang/String;)Ljava/lang/Object;
 				*/
 
-				nashornWrapperClass = env->FindClass("example/jni/JniClass");
+				nashornWrapperClass = env->FindClass("JniClass");
 				theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
 				jsCode = env->NewStringUTF(functionCode.c_str());
 

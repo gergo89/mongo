@@ -1,16 +1,15 @@
-package example.jni;
-
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.swing.JOptionPane;
 
+
+
 public class JniClass {
 	static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 	static final Invocable invocable = (Invocable) engine;
 	static final String debugTag = "JAVA-VM MESSAGE: ";
-	
 	static {
 		try {
 			//engine.eval("var TimerTask =  Java.type('java.util.TimerTask')");
@@ -19,20 +18,13 @@ public class JniClass {
 			e.printStackTrace();
 		}
 	}
+
 	
-	static {
-		try {
-			engine.eval("var intArrayType = Java.type('int[]')");
-		} catch (ScriptException e){
-			e.printStackTrace();
-		}
-	}
 	
 	//public java.lang.String invokeFunctionNashorn(java.lang.String);
 	//descriptor: (Ljava/lang/String;)Ljava/lang/Object;
 	public Object invokeFunctionNashorn(String code) {	
 
-		
 		Object result = null;
 		JOptionPane.showMessageDialog(null, code, "Code", JOptionPane.OK_CANCEL_OPTION);
 		System.out.println(debugTag + "Here we start java method with the following argument: " + code);

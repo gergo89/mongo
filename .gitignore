@@ -168,3 +168,4 @@ buildinfo.cpp
 *.wixobj
 *.wixpdb
 DriverInclude.wxs
+SConstruct

@@ -1,10 +1,11 @@
+
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.swing.JOptionPane;
 
-import com.mongodb.MongoClient;
+
 
 //import com.mongodb.MongoClient;
 
@@ -19,6 +20,9 @@ public class JniClass {
 	static final String debugTag = "JAVA-VM MESSAGE: ";
 	static {
 		try {
+			
+	
+
 			//engine.eval("var TimerTask =  Java.type('java.util.TimerTask')");
 			engine.eval("var Mongo = Java.type('MongoManager')");
 			//engine.eval("var Mongo = Java.type('com.mongodb.MongoClient')");

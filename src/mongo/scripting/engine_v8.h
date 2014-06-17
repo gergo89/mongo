@@ -625,9 +625,106 @@
 #include <sstream>
 #include <string>
 
+#include <thread>
+
 #include "jni.h"
 
+#include <future>
 namespace mongo {
+
+
+	std::string BackGroundThread(std::string functionCode, bool jvmCreated, JavaVM *jvm, JNIEnv *env)
+	{
+		std::cout << "BackGroundThread started\n";
+
+		jint res;
+		jclass cls;
+		jmethodID mid;
+		jstring jstr;
+		jclass stringClass;
+		//	jobjectArray args;
+
+		JavaVMInitArgs vm_args;
+		JavaVMOption options[1];
+
+		//options[0].optionString = "-Djava.class.path=c:\\katyusa\\JKU\\2013142\\projekt\\wp_projektSeminar\\JNITest\\src\\";
+
+		vm_args.version = 0x00010002;
+		vm_args.options = options;
+		vm_args.nOptions = 1;
+		vm_args.ignoreUnrecognized = JNI_TRUE;
+		/* Create the Java VM */
+
+		if (!jvmCreated)
+		{
+			std::string class_property = "-Djava.class.path=";
+			const char* path = "..\\..\\..\\..\\..\\src\\mongo\\java\\";
+			char absolute_path[_MAX_PATH];
+			_fullpath(absolute_path, path, _MAX_PATH);
+
+
+			std::string a_path(absolute_path);
+			std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar";;
+
+			char* optClassPath = new char[full_name.size() + 1];
+			std::copy(full_name.begin(), full_name.end(), optClassPath);
+			optClassPath[full_name.size()] = '\0';
+			options[0].optionString = optClassPath;
+
+			res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
+
+			delete[] optClassPath;
+			if (res < 0) {
+				fprintf(stderr, "Can't create Java VM\n");
+				//exit(1);
+			}
+			else{
+				cout << "JVM ok\n\n\n\n\n\n";
+				jvmCreated = true;
+			}
+		}
+
+		////------call java ----
+
+		jclass nashornWrapperClass;
+		jmethodID theMethod;
+		jstring jsCode;
+
+		/*Output from javap -s -p
+		public java.lang.Object invokeFunctionNashorn(java.lang.String);
+		descriptor: (Ljava/lang/String;)Ljava/lang/Object;
+
+		public static java.lang.Object main(java.lang.String[]);
+		descriptor: ([Ljava/lang/String;)Ljava/lang/Object;
+		*/
+
+		nashornWrapperClass = env->FindClass("JniClass");
+		if (nashornWrapperClass == NULL){
+			return "FindClass failed";
+		}
+
+		theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
+		jsCode = env->NewStringUTF(functionCode.c_str());
+
+		auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
+
+		if (retVal != NULL){
+			const char* result = env->GetStringUTFChars((jstring)retVal, 0);
+			std::stringstream ss;
+			ss << result;
+
+				return ss.str();
+		}
+		else
+		{
+				return "retVal cannot be read on the c side\n";
+		}
+
+		/////-----end call java----
+
+	}
+
+
 	class FakeScriptEngine;
 	class FakeScope;
 
@@ -785,124 +882,46 @@ namespace mongo {
 		virtual std::string invoke(ScriptingFunction func, const char* code, const BSONObj* args, const BSONObj* recv,
 			int timeoutMs = 0, bool ignoreReturn = false, bool readOnlyArgs = false,
 			bool readOnlyRecv = false){
-				cout << "function called: the longer invoke funciton\n";
-				cout << "code: \n" << code << endl;
+			
+			cout << "function called: the longer invoke funciton\n";
+			cout << "code: \n" << code << endl;
 
-				std::string functionCode = "";
+			std::string functionCode = "";
 
-				for (vector<std::pair<std::string, std::string>>::iterator it = _storedFunctions.begin(); it != _storedFunctions.end(); ++it) {
-					std::string strToAdd = it->second;
-					strToAdd.insert(9, it->first);
+			for (vector<std::pair<std::string, std::string>>::iterator it = _storedFunctions.begin(); it != _storedFunctions.end(); ++it) {
+				std::string strToAdd = it->second;
+				strToAdd.insert(9, it->first);
 
-					functionCode += strToAdd;
-					functionCode += " ";
+				functionCode += strToAdd;
+				functionCode += " ";
+			}
+
+			string codeString = jsSkipWhiteSpace(code);
+			if (!hasFunctionIdentifier(codeString)) {
+				if (codeString.find('\n') == string::npos &&
+					!hasJSReturn(codeString) &&
+					(codeString.find(';') == string::npos || codeString.find(';') == codeString.size() - 1)) {
+					codeString = "return " + codeString;
 				}
+				codeString = "function(){ " + codeString + "}";
+			}
 
-				string codeString = jsSkipWhiteSpace(code);
-				if (!hasFunctionIdentifier(codeString)) {
-					if (codeString.find('\n') == string::npos &&
-						!hasJSReturn(codeString) &&
-						(codeString.find(';') == string::npos || codeString.find(';') == codeString.size() - 1)) {
-							codeString = "return " + codeString;
-					}
-					codeString = "function(){ " + codeString + "}";
-				}
+			string fn = str::stream() << "_funcs"; //original: string fn = str::stream() << "_funcs" << functionNumber;
+			codeString = str::stream() << fn << " = " << codeString;
 
-				string fn = str::stream() << "_funcs"; //original: string fn = str::stream() << "_funcs" << functionNumber;
-				codeString = str::stream() << fn << " = " << codeString;
+			///==================///
 
-				///==================///
-
-				functionCode += codeString;
-
-				jint res;
-				jclass cls;
-				jmethodID mid;
-				jstring jstr;
-				jclass stringClass;
-				//	jobjectArray args;
-
-				JavaVMInitArgs vm_args;
-				JavaVMOption options[1];
-
-				//options[0].optionString = "-Djava.class.path=c:\\katyusa\\JKU\\2013142\\projekt\\wp_projektSeminar\\JNITest\\src\\";
-
-				vm_args.version = 0x00010002;
-				vm_args.options = options;
-				vm_args.nOptions = 1;
-				vm_args.ignoreUnrecognized = JNI_TRUE;
-				/* Create the Java VM */
-
-				if (!jvmCreated)
-				{
-					std::string class_property = "-Djava.class.path=";
-					const char* path = "..\\..\\..\\..\\..\\src\\mongo\\java\\";
-					char absolute_path[_MAX_PATH];
-					_fullpath(absolute_path,path,_MAX_PATH);
-
-					
-
-					std::string a_path(absolute_path);
-					std::string full_name = class_property + a_path;
-
-					char* optClassPath = new char[full_name.size() + 1];
-					std::copy(full_name.begin(),full_name.end(),optClassPath);
-					optClassPath[full_name.size()] = '\0';
-					options[0].optionString = optClassPath;
-
-					res = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
-
-					delete[] optClassPath;
-					if (res < 0) {
-						fprintf(stderr, "Can't create Java VM\n");
-						//exit(1);
-					}
-					else{
-						cout << "JVM ok\n\n\n\n\n\n";
-						jvmCreated = true;
-					}
-				}
-
-				////------call java ----
-
-				jclass nashornWrapperClass;
-				jmethodID theMethod;
-				jstring jsCode;
-
-				/*Output from javap -s -p
-				public java.lang.Object invokeFunctionNashorn(java.lang.String);
-				descriptor: (Ljava/lang/String;)Ljava/lang/Object;
-
-				public static java.lang.Object main(java.lang.String[]);
-				descriptor: ([Ljava/lang/String;)Ljava/lang/Object;
-				*/
-
-				nashornWrapperClass = env->FindClass("JniClass");
-				if (nashornWrapperClass == NULL){
-					return "FindClass failed";
-				}
-
-				theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
-				jsCode = env->NewStringUTF(functionCode.c_str());
+			functionCode += codeString;
 				
-				auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
-				
-				if (retVal != NULL){
-					const char* result = env->GetStringUTFChars((jstring)retVal, 0);
-					std::stringstream ss;
-					ss << result;
-
-					return ss.str();
-				}
-				else
-				{
-					return "retVal cannot be read on the c side\n";
-				}
-
-				///-----end call java----
-
-				
+			
+			//Gergoe: We do not wait for this future!! I tested it and it blocks... currently this is our only working version
+			//Gergoe: The std::task does not seems to work here.. if we use task the application exits (without any exception...)
+			std::async(BackGroundThread, functionCode, jvmCreated, jvm, env);
+			
+			
+			return "Call returned, output is visible on the server side";
 		}
+
 
 		virtual int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,
 			int timeoutMs = 0, bool ignoreReturn = false, bool readOnlyArgs = false,
@@ -950,4 +969,7 @@ namespace mongo {
 	};
 
 	extern ScriptEngine* globalScriptEngine;
+
+
+
 }

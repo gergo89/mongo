@@ -1,9 +1,25 @@
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import javax.script.ScriptException;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
 
 public class MongoManager {
   static final String debugTag = "JAVA-VM MESSAGE: ";
@@ -21,7 +37,7 @@ public class MongoManager {
   }
   
   
-  public void PrintCollection(String dbName){
+  public void PrintCollection(){
 	  System.out.println("PrintCollection started");
 	  
 	  try {
@@ -31,9 +47,11 @@ public class MongoManager {
 		e.printStackTrace();
 	}
 	  
+	    
+	  
 	  System.out.println("MongoClient created");
 	  
-	  DB db = mongoClient.getDB(dbName);
+	  DB db = mongoClient.getDB("test");
 	  
 	  Set<String> colls = db.getCollectionNames();
 

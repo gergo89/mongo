@@ -664,7 +664,7 @@ namespace mongo {
 
 
 			std::string a_path(absolute_path);
-			std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar";;
+			std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar"; 
 
 			char* optClassPath = new char[full_name.size() + 1];
 			std::copy(full_name.begin(), full_name.end(), optClassPath);
@@ -906,6 +906,7 @@ namespace mongo {
 				codeString = "function(){ " + codeString + "}";
 			}
 
+
 			string fn = str::stream() << "_funcs"; //original: string fn = str::stream() << "_funcs" << functionNumber;
 			codeString = str::stream() << fn << " = " << codeString;
 
@@ -920,6 +921,7 @@ namespace mongo {
 			
 			
 			return "Call returned, output is visible on the server side";
+
 		}
 
 

@@ -878,19 +878,30 @@ namespace mongo {
 				*/
 
 				nashornWrapperClass = env->FindClass("JniClass");
+				if (nashornWrapperClass == NULL){
+					return "FindClass failed";
+				}
+
 				theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
 				jsCode = env->NewStringUTF(functionCode.c_str());
 				
 				auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
 				
-				const char* date = env->GetStringUTFChars( (jstring)retVal , 0);
+				if (retVal == NULL){
+					const char* result = env->GetStringUTFChars((jstring)retVal, 0);
+					std::stringstream ss;
+					ss << result;
+
+					return ss.str();
+				}
+				else
+				{
+					return "__errorInFunctionInvocation";
+				}
 
 				///-----end call java----
 
-				std::stringstream ss;
-				ss << date;
-
-				return ss.str();
+				
 		}
 
 		virtual int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,

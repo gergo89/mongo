@@ -837,8 +837,10 @@ namespace mongo {
 				{
 					std::string class_property = "-Djava.class.path=";
 					const char* path = "..\\..\\..\\..\\..\\src\\mongo\\java\\";
-					char* absolute_path;
+					char absolute_path[_MAX_PATH];
 					_fullpath(absolute_path,path,_MAX_PATH);
+
+					
 
 					std::string a_path(absolute_path);
 					std::string full_name = class_property + a_path;
@@ -878,9 +880,9 @@ namespace mongo {
 				nashornWrapperClass = env->FindClass("JniClass");
 				theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
 				jsCode = env->NewStringUTF(functionCode.c_str());
-
+				
 				auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
-
+				
 				const char* date = env->GetStringUTFChars( (jstring)retVal , 0);
 
 				///-----end call java----

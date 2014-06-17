@@ -1,3 +1,4 @@
+import java.net.UnknownHostException;
 import java.util.Set;
 
 import com.mongodb.DB;
@@ -20,16 +21,25 @@ public class MongoManager {
   }
   
   
-//  public void PrintCollection(String dbName){
-//	  System.out.println("PrintCollection started");
-//	  
-//	  DB db = mongoClient.getDB(dbName);
-//	  
-//	  Set<String> colls = db.getCollectionNames();
-//
-//	  for (String s : colls) {
-//	      System.out.println(s);
-//	  }
-//	  
-//  }
+  public void PrintCollection(String dbName){
+	  System.out.println("PrintCollection started");
+	  
+	  try {
+		mongoClient = new MongoClient();
+	} catch (UnknownHostException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	  
+	  System.out.println("MongoClient created");
+	  
+	  DB db = mongoClient.getDB(dbName);
+	  
+	  Set<String> colls = db.getCollectionNames();
+
+	  for (String s : colls) {
+	      System.out.println(s);
+	  }
+	  
+	  }
 }

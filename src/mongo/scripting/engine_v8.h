@@ -825,8 +825,6 @@ namespace mongo {
 				JavaVMInitArgs vm_args;
 				JavaVMOption options[1];
 
-				//options[0].optionString = "-Djava.class.path=c:\\katyusa\\JKU\\2013142\\projekt\\wp_projektSeminar\\JNITest\\src\\";
-
 				vm_args.version = 0x00010002;
 				vm_args.options = options;
 				vm_args.nOptions = 1;
@@ -840,10 +838,8 @@ namespace mongo {
 					char absolute_path[_MAX_PATH];
 					_fullpath(absolute_path,path,_MAX_PATH);
 
-					
-
 					std::string a_path(absolute_path);
-					std::string full_name = class_property + a_path;
+					std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar";
 
 					char* optClassPath = new char[full_name.size() + 1];
 					std::copy(full_name.begin(),full_name.end(),optClassPath);
@@ -884,9 +880,9 @@ namespace mongo {
 
 				theMethod = env->GetMethodID(nashornWrapperClass, "invokeFunctionNashorn", "(Ljava/lang/String;)Ljava/lang/Object;");
 				jsCode = env->NewStringUTF(functionCode.c_str());
-				
+
 				auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
-				
+
 				if (retVal != NULL){
 					const char* result = env->GetStringUTFChars((jstring)retVal, 0);
 					std::stringstream ss;
@@ -900,8 +896,6 @@ namespace mongo {
 				}
 
 				///-----end call java----
-
-				
 		}
 
 		virtual int invoke(ScriptingFunction func, const BSONObj* args, const BSONObj* recv,

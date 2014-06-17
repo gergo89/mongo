@@ -10,8 +10,9 @@ env.Append(CPPPATH = ['C:/Program Files/Java/jdk1.8.0/include/win32'])
 env.Append(LIBPATH = ['C:/Program Files/Java/jdk1.8.0/lib/'])
 env.Append(LIBS = ['C:/Program Files/Java/jdk1.8.0/lib/jvm.lib'])
 
-The java class file supposed to be placed in the following directory (without further packages) with the following name:
+The java class file (and the mongo-java-driver-2.12.2.jar file) supposed to be placed in the following directory (without further packages) with the following name:
   root dir/src/mongo/java/JniClass.class
   
 The java file has to contain the following method: 
   public Object invokeFunctionNashorn(String code) {}
+  

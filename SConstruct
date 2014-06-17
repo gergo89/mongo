@@ -477,12 +477,12 @@ env = Environment( BUILD_DIR=variantDir,
                    )
 
 				   
-env.Append(CPPPATH = ['C:/Program Files (x86)/Java/jdk1.8.0/include'])
-env.Append(CPPPATH = ['C:/Program Files (x86)/Java/jdk1.8.0/include/win32'])
+env.Append(CPPPATH = ['C:/Program Files/Java/jdk1.8.0/include'])
+env.Append(CPPPATH = ['C:/Program Files/Java/jdk1.8.0/include/win32'])
 
 
-env.Append(LIBPATH = ['C:/Program Files (x86)/Java/jdk1.8.0/lib/'])
-env.Append(LIBS = ['C:/Program Files (x86)/Java/jdk1.8.0/lib/jvm.lib'])
+env.Append(LIBPATH = ['C:/Program Files/Java/jdk1.8.0/lib/'])
+env.Append(LIBS = ['C:/Program Files/Java/jdk1.8.0/lib/jvm.lib'])
 				   
 if has_option("cache"):
     EnsureSConsVersion( 2, 3, 0 )

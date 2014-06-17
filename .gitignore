@@ -169,3 +169,5 @@ buildinfo.cpp
 *.wixpdb
 DriverInclude.wxs
 SConstruct
+SConstruct
+SConstruct

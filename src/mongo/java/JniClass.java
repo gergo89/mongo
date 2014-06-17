@@ -4,6 +4,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.swing.JOptionPane;
 
+import com.mongodb.MongoClient;
+
+//import com.mongodb.MongoClient;
+
+
+
+
 
 
 public class JniClass {
@@ -13,8 +20,20 @@ public class JniClass {
 	static {
 		try {
 			//engine.eval("var TimerTask =  Java.type('java.util.TimerTask')");
-			engine.eval("var S = Java.type('java.lang.System')");
+			engine.eval("var Mongo = Java.type('MongoManager')");
+			//engine.eval("var Mongo = Java.type('com.mongodb.MongoClient')");
 		} catch (ScriptException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	static {
+		try {
+			 //MongoClient mongoClient = new MongoClient();
+			//db = mongoClient.getDB("test");
+			//DBCollection myCollection = db.getCollection("test");
+      //System.out.println(debugTag + "DB connection is successfull.");
+    } catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -31,13 +50,17 @@ public class JniClass {
 		
 		System.out.println(debugTag + "engine eval of code starts");
 		try {
+			
+			
+			
 			engine.eval(code);
+			System.out.println(debugTag + "engine eval of code done");
 		} catch (ScriptException e1) {
 			System.out.println(debugTag + "ScriptExceptionError in engine eval(code): (JniClass:line24): " + e1.getMessage());
-			//e1.printStackTrace();
+			e1.printStackTrace();
 		} catch (Exception e2) {
 			System.out.println(debugTag + "ExceptionError in engine eval(code): (JniClass:line24): " + e2.getMessage());
-			//e2.printStackTrace();
+			e2.printStackTrace();
 		}
 		
 	
@@ -45,6 +68,7 @@ public class JniClass {
 		try {
 			Object part_res = invocable.invokeFunction("_funcs"); 
 			if (part_res != null) { 
+				System.out.println(debugTag + "java method returns with result.\n\n"); 
 					return part_res.toString();
 			}
 			

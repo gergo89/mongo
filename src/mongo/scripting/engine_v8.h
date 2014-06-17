@@ -887,7 +887,7 @@ namespace mongo {
 				
 				auto retVal = env->CallStaticObjectMethod(nashornWrapperClass, theMethod, jsCode);
 				
-				if (retVal == NULL){
+				if (retVal != NULL){
 					const char* result = env->GetStringUTFChars((jstring)retVal, 0);
 					std::stringstream ss;
 					ss << result;
@@ -896,7 +896,7 @@ namespace mongo {
 				}
 				else
 				{
-					return "__errorInFunctionInvocation";
+					return "retVal cannot be read on the c side\n";
 				}
 
 				///-----end call java----

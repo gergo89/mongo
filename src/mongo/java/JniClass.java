@@ -5,66 +5,36 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.swing.JOptionPane;
 
-
-
-//import com.mongodb.MongoClient;
-
-
-
-
-
-
 public class JniClass {
 	static final ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 	static final Invocable invocable = (Invocable) engine;
 	static final String debugTag = "JAVA-VM MESSAGE: ";
+  static final String errorReturn = "__errorInFunctionInvocation";
 	static {
 		try {
-			
-	
-
-			//engine.eval("var TimerTask =  Java.type('java.util.TimerTask')");
 			engine.eval("var Mongo = Java.type('MongoManager')");
-			//engine.eval("var Mongo = Java.type('com.mongodb.MongoClient')");
-		} catch (ScriptException e) {
-			e.printStackTrace();
+		} catch (ScriptException e1) {
+      System.out.println(debugTag + "ScriptExceptionError in Mongo type creation: (JniClass:line17): " + e1.getMessage());
+		} catch (Exception e2) {
+			System.out.println(debugTag + "ExceptionError in Mongo type creation: (JniClass:line19): " + e2.getMessage());
 		}
 	}
-	
-	static {
-		try {
-			 //MongoClient mongoClient = new MongoClient();
-			//db = mongoClient.getDB("test");
-			//DBCollection myCollection = db.getCollection("test");
-      //System.out.println(debugTag + "DB connection is successfull.");
-    } catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	
 	
 	//public java.lang.String invokeFunctionNashorn(java.lang.String);
 	//descriptor: (Ljava/lang/String;)Ljava/lang/Object;
 	public Object invokeFunctionNashorn(String code) {	
-
 		Object result = null;
 		JOptionPane.showMessageDialog(null, code, "Code", JOptionPane.OK_CANCEL_OPTION);
-		System.out.println(debugTag + "Here we start java method with the following argument: " + code);
+		System.out.println(debugTag + "invokeFunctionNashorn starts with the following argument: \n" + code +"\n");
 		
-		System.out.println(debugTag + "engine eval of code starts");
+		System.out.println(debugTag + "engine.eval() starts.");
 		try {
-			
-			
-			
 			engine.eval(code);
-			System.out.println(debugTag + "engine eval of code done");
+			System.out.println(debugTag + "engine.eval() is done.");
 		} catch (ScriptException e1) {
-			System.out.println(debugTag + "ScriptExceptionError in engine eval(code): (JniClass:line24): " + e1.getMessage());
-			e1.printStackTrace();
+			System.out.println(debugTag + "ScriptExceptionError in engine eval(code): (JniClass:line35): " + e1.getMessage());
 		} catch (Exception e2) {
-			System.out.println(debugTag + "ExceptionError in engine eval(code): (JniClass:line24): " + e2.getMessage());
-			e2.printStackTrace();
+			System.out.println(debugTag + "ExceptionError in engine eval(code): (JniClass:line37): " + e2.getMessage());
 		}
 		
 	
@@ -72,70 +42,22 @@ public class JniClass {
 		try {
 			Object part_res = invocable.invokeFunction("_funcs"); 
 			if (part_res != null) { 
-				System.out.println(debugTag + "java method returns with result.\n\n"); 
-					return part_res.toString();
+				System.out.println(debugTag + "invokeFunctionNashorn method returns with valid result: \n" + part_res.toString() + "\n\n"); 
+				return part_res.toString();
 			}
 			
 		} catch (NoSuchMethodException e) {
-			System.out.println(debugTag + "No such function exception in java");
+			System.out.println(debugTag + "NoSuchMethodExceptionError in invoke _funcs: (JniClass:line50)" + e.getMessage());
 		} catch (ScriptException e) {
-			System.out.println(debugTag + "ScriptExceptionError in invoke _funcs: (JniClass:line53): " + e.getMessage());
-			//e.printStackTrace();
+			System.out.println(debugTag + "ScriptExceptionError in invoke _funcs: (JniClass:line52): " + e.getMessage());
 		} catch (Exception e2) {
-			System.out.println(debugTag + "ExceptionError in invoke _funcs: (JniClass:line53): " + e2.getMessage());
-			//e2.printStackTrace();
+			System.out.println(debugTag + "ExceptionError in invoke _funcs: (JniClass:line54): " + e2.getMessage());
 		}
 		
 		
-		System.out.println(debugTag + "java method returns.\n\n");
-		return "__errorInFunctionInvocation";
+		System.out.println(debugTag + "invokeFunctionNashorn method returns with \"" + errorReturn + "\".\n\n");
+		return errorReturn;
 
 	}
 	
-	//descriptor: ([Ljava/lang/String;)Ljava/lang/Object;
-	public static Object main(String[] args) {
-		
-		ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-	
-		try {
-			engine.eval(args[0]);
-		} catch (ScriptException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		Invocable invocable = (Invocable) engine;
-		
-		JOptionPane.showMessageDialog(null, args[0], "Code", JOptionPane.OK_CANCEL_OPTION);
-		
-		System.out.println("Here we start JVM");
-		System.out.println("Arguments sent to this program:");
-		if (args.length == 0) {
-			System.out.println("(None)");
-		} else {
-			for (int i=0; i<args.length; i++) {
-				System.out.print(args[i] + " ");
-			}
-			System.out.println();
-		}
-		
-		Object result = null;
-		try {
-			result = invocable.invokeFunction("_funcs");
-			
-			System.out.println("result: ");
-			System.out.println(result);
-			
-			return result.toString();
-			
-		} catch (NoSuchMethodException e) {
-			
-			System.out.println("No such function exception in java");
-		} catch (ScriptException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return "javaFoo";	
-	}
 }

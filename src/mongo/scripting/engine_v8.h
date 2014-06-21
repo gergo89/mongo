@@ -632,10 +632,16 @@
 #include <future>
 namespace mongo {
 
+	JavaVM *jvm;
+	JNIEnv *env;
+	bool jvmCreated;
 
-	std::string BackGroundThread(std::string functionCode, bool jvmCreated, JavaVM *jvm, JNIEnv *env)
+
+
+	std::string BackGroundThread(std::string functionCode)
 	{
 		std::cout << "BackGroundThread started\n";
+
 
 		jint res;
 		jclass cls;
@@ -664,7 +670,7 @@ namespace mongo {
 
 
 			std::string a_path(absolute_path);
-			std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar"; 
+			std::string full_name = class_property + a_path + ";" + a_path + "mongo-java-driver-2.12.2.jar";
 
 			char* optClassPath = new char[full_name.size() + 1];
 			std::copy(full_name.begin(), full_name.end(), optClassPath);
@@ -684,6 +690,8 @@ namespace mongo {
 			}
 		}
 
+
+
 		////------call java ----
 
 		jclass nashornWrapperClass;
@@ -697,8 +705,11 @@ namespace mongo {
 		public static java.lang.Object main(java.lang.String[]);
 		descriptor: ([Ljava/lang/String;)Ljava/lang/Object;
 		*/
-
+					
 		nashornWrapperClass = env->FindClass("JniClass");
+
+		std::cout << "after findclass\n";
+
 		if (nashornWrapperClass == NULL){
 			return "FindClass failed";
 		}
@@ -725,16 +736,14 @@ namespace mongo {
 	}
 
 
+	
 	class FakeScriptEngine;
 	class FakeScope;
 
 	extern std::string ___GlobalString;
 
 	class FakeScope : public Scope {
-	private:
-		JavaVM *jvm;
-		JNIEnv *env;
-		bool jvmCreated;
+	
 
 	public:
 
@@ -743,6 +752,7 @@ namespace mongo {
 		}
 
 		~FakeScope(){
+			cout << "facescope destructor called";
 		}
 
 		virtual void reset(){
@@ -914,10 +924,11 @@ namespace mongo {
 
 			functionCode += codeString;
 				
-			
+
+
 			//Gergoe: We do not wait for this future!! I tested it and it blocks... currently this is our only working version
 			//Gergoe: The std::task does not seems to work here.. if we use task the application exits (without any exception...)
-			std::async(BackGroundThread, functionCode, jvmCreated, jvm, env);
+			std::async(BackGroundThread, functionCode);
 			
 			
 			return "Call returned, output is visible on the server side";

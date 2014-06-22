@@ -33,7 +33,7 @@ public class JniClass {
     *	descriptor: (Ljava/lang/String;)Ljava/lang/Object;
     */
 	public Object invokeFunctionNashorn(String code) {	
-		System.out.println(debugTag + "invokeFunctionNashorn starts with the following argument: \n" + code +"\n");
+		System.out.println(debugTag + "invokeFunctionNashorn starts.");
 		
 		System.out.println(debugTag + "engine.eval() starts.");
 		try {
@@ -53,7 +53,7 @@ public class JniClass {
 			duration = endTime - startTime;
 			if (part_res != null) { 
 				JOptionPane.showMessageDialog(null, part_res, "Result of the evaluation", JOptionPane.OK_CANCEL_OPTION);
-				System.out.println(debugTag + "invokeFunctionNashorn method returns with valid result: \n" + part_res.toString() + "\n\n");
+				System.out.println(debugTag + "invokeFunctionNashorn method returns with valid result. \n" + part_res.toString() + "\n\n");
 				double dur_inSeconds = ((double)duration / 1000000000);
 				System.out.println(debugTag + "runTime: " + new DecimalFormat("##.####").format(dur_inSeconds) + " sec"); 
 				

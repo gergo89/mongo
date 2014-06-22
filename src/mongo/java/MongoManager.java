@@ -1,6 +1,5 @@
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import com.mongodb.WriteResult;
 
 
 public class MongoManager {
@@ -56,6 +56,8 @@ public class MongoManager {
 		}
 		coll.save(doc);
 	}
+	
+	
 	
 	public DBObject findOne(Map entry) {
 		BasicDBObject searchQuery = new BasicDBObject();
@@ -116,7 +118,7 @@ public class MongoManager {
 		return result;
 	}
 	
-	public List<Object> getArrayData(Map entry) {
+	public ArrayList<Object> getArrayData(Map entry) {
 		coll = db.getCollection("mongoDemo_2");
 		BasicDBObject searchQuery = new BasicDBObject();
 		Iterator entries = entry.entrySet().iterator();
@@ -128,9 +130,12 @@ public class MongoManager {
 			searchQuery.append(ekey.toString(), value);
 		}
 		
+		ArrayList<Object> res = new ArrayList<Object>();
 		DBCursor cursor = coll.find(searchQuery);
 		if (cursor.hasNext()) {
-			return Arrays.asList(cursor.next().get("value"));
+			res.addAll( (List<Object>)cursor.next().get("value"));
+			//System.out.println(debugTag + "getArrayData res.size() " + res.size() + " content: " + res.toString());
+			return res;
 		}
 
 		return new ArrayList<Object>();
@@ -164,6 +169,33 @@ public class MongoManager {
 		arrayEntry.append("name", "Numbers");
 		arrayEntry.append("value", numbers);
 		coll.insert(arrayEntry);
+	}
+	
+	public void updateArrayList(List<Integer> result) {
+		coll = db.getCollection("mongoDemo_2");
+		//System.out.println(debugTag + "size of array: " + result.size());
+		ArrayList<Integer> numbers = new ArrayList<Integer>(result);
+	
+		BasicDBObject arrayEntry = new BasicDBObject();
+		BasicDBObject originalEntry = new BasicDBObject();
+		originalEntry.append("name", "Numbers");
+		arrayEntry.append("name", "Numbers");
+		arrayEntry.append("value", numbers);
+		WriteResult res = coll.update(originalEntry,arrayEntry);
+		System.out.println(debugTag + "WriterResult: " + res.isUpdateOfExisting());
+	}
+	
+	public void updateArray(int[] result) {
+		coll = db.getCollection("mongoDemo_2");
+		//System.out.println(debugTag + "size of array: " + result.length);
+	
+		BasicDBObject arrayEntry = new BasicDBObject();
+		BasicDBObject originalEntry = new BasicDBObject();
+		originalEntry.append("name", "Numbers");
+		arrayEntry.append("name", "Numbers");
+		arrayEntry.append("value", result);
+		WriteResult res = coll.update(originalEntry,arrayEntry);
+		System.out.println(debugTag + "WriterResult: " + res.isUpdateOfExisting());
 	}
 	
 	public void createMongoDemo_3_DB() {
